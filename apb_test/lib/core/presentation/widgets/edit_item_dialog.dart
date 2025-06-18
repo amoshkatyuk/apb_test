@@ -40,15 +40,17 @@ class _EditItemDialogState extends State<EditItemDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Элемент: ' + widget.item.value),
+          Text('Элемент: ${widget.item.value}'),
 
           const SizedBox(height: 12),
+
           TextField(
             controller: _titleController,
             decoration: const InputDecoration(labelText: 'Название'),
           ),
 
           const SizedBox(height: 12),
+
           TextField(
             controller: _descriptionController,
             decoration: const InputDecoration(labelText: 'Описание'),
