@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:image_picker/image_picker.dart';
 import 'package:apb_test/core/data/models/barcode_item_model.dart';
 import 'package:apb_test/core/presentation/bloc/barcode/barcode_bloc.dart';
 import 'package:apb_test/core/presentation/bloc/barcode/barcode_state.dart';
@@ -16,20 +16,56 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('АПБ Тест'),
         centerTitle: true,
+        actions: [
+          IconButton(
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Подтверждение'),
+                      content: const Text('Удалить все элементы?'),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Отмена'),
+                        ),
+                        TextButton(
+                            onPressed: () {
+                              context.read<BarcodeBloc>().add(ClearItems());
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Удалить'),
+                        )
+                      ],
+                    )
+                );
+              },
+              icon: const Icon(Icons.delete_forever),
+          ),
+        ],
       ),
       body: BlocBuilder<BarcodeBloc, BarcodeState>(
           builder: (context, state) {
             final items = state.items;
 
             if (items.isEmpty) {
-              return const Center(
-                child: Text('Элементы отсутствуют. Добавьте первый с помощью кнопки ниже.'),
+              return const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Center(
+                    child: Text(
+                        textAlign: TextAlign.center,
+                        'Элементы отсутствуют. \nДобавьте первый с помощью кнопки ниже',
+                    ),
+                  ),
+                ],
               );
             }
 
@@ -43,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 final item = items[index];
 
                 return ListTile(
-                  key: ValueKey(item.value),
+                  key: ValueKey('$index-${item.value}'),
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: item.imagePath != null
@@ -81,11 +117,35 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     );
                   },
-                  trailing: IconButton(
-                      onPressed: () {
-                        context.read<BarcodeBloc>().add(DeleteItem(index));
-                      },
-                      icon: const Icon(Icons.delete),
+                  trailing: SizedBox(
+                    width: 96,
+                    child: Row(
+                      children: [
+                        IconButton(
+                          onPressed: () async {
+                            final picker = ImagePicker();
+                            final XFile? image = await picker.pickImage(source: ImageSource.camera);
+
+                            if (image != null) {
+                              context.read<BarcodeBloc>().add(
+                                UpdateItem(
+                                  index,
+                                  item.copyWith(imagePath: image.path),
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.camera_alt),
+                        ),
+
+                        IconButton(
+                          onPressed: () {
+                            context.read<BarcodeBloc>().add(DeleteItem(index));
+                          },
+                          icon: const Icon(Icons.delete),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

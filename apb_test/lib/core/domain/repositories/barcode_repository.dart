@@ -9,7 +9,7 @@ class BarcodeRepository implements AbstractBarcodeRepository {
 
   @override
   Future<List<BarcodeItemModel>> getItems() async {
-    return box.values.toList();
+    return box.values.map((e) => e.copyWith()).toList();
   }
 
   @override
